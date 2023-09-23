@@ -11,12 +11,12 @@ import os
 bp = Blueprint('step3', __name__, url_prefix='/step3')
 
 # api
-translator = deepl.Translator("a3e08092-e802-0017-285a-dc6070362a23:fx") #해니
+translator = deepl.Translator("") #해니
 
-openai.api_key = "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"  #해니
+openai.api_key = ""  #해니
 model = "gpt-3.5-turbo"
 
-hugging_token = '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' #해니
+hugging_token = '' #해니
 
 # cuda 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

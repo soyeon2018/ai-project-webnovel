@@ -25,13 +25,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 #1. huggingface
-hugging_token = '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' #해니
+hugging_token = '' #해니
 
 #2. deepl
-translator = deepl.Translator("a3e08092-e802-0017-285a-dc6070362a23:fx") #해니
+translator = deepl.Translator("") #해니
 
 #3. openai
-openai.api_key = "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"  #해니
+openai.api_key = ""  #해니
 model = "gpt-3.5-turbo"
 
 #Stable Diffusion
