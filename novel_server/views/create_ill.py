@@ -25,7 +25,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 #1. huggingface
-hugging_token = '' #해니
+hugging_token = "" #해니
 
 #2. deepl
 translator = deepl.Translator("") #해니
@@ -78,11 +78,14 @@ def basic_charactor():
         # Set up the prompt
         prompt = result.text
 
-        #----Face detection 하는 코드 추가, detect 안되면 다시 돌리기. 일단 한번은 실행되도록. 
-        # len(face)가 0이 아니면 break
+        # Generate the image - face detect 안되면 될 때까지 생성
+        while True:
+            image = pipeline(prompt+', single person, no background').images[0]
+            img = np.array(image)
+            faces = app.get(img)
+            if len(faces) != 0:
+                break
 
-        # Generate the image
-        image = pipeline(prompt+', single person, no background').images[0]
 
         # Generate a unique image filename
         timestamp = int(time.time())
