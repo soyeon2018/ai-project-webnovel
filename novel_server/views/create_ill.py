@@ -1,6 +1,7 @@
 from flask import Flask, Blueprint, render_template, jsonify, request, send_file
 from diffusers import StableDiffusionPipeline, DiffusionPipeline
 import numpy as np
+import requests
 import glob 
 import cv2
 import json
@@ -11,6 +12,8 @@ import openai
 import torch
 import deepl
 import time
+import tempfile
+import shutil
 
 import insightface
 from insightface.app import FaceAnalysis
@@ -22,13 +25,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 #1. huggingface
-hugging_token = 'token' #해니
+hugging_token = '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' #해니
 
 #2. deepl
-translator = deepl.Translator("key") #해니
+translator = deepl.Translator("a3e08092-e802-0017-285a-dc6070362a23:fx") #해니
 
 #3. openai
-openai.api_key = "key"  #해니
+openai.api_key = "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"  #해니
 model = "gpt-3.5-turbo"
 
 #Stable Diffusion
@@ -70,34 +73,40 @@ def basic_charactor():
         genre = data.get('genre')
 
         # Translate the text using the Deepl API
-        result = translator.translate_text(f"{name} : 성별은 {gender},생김새는 {appearance}, 성격은 {personality}, 장르는 {genre}, 웹툰그림체, 한 명, 정면 응시, 상반신, 배경 없음", target_lang="en-us")
+        result = translator.translate_text(f"{name} : 성별은 {gender},생김새는 {appearance}, 성격은 {personality}, 장르는 {genre}, 웹툰그림체, 정면 응시, 상반신", target_lang="en-us")
 
         # Set up the prompt
         prompt = result.text
 
         #----Face detection 하는 코드 추가, detect 안되면 다시 돌리기. 일단 한번은 실행되도록. 
+        # len(face)가 0이 아니면 break
 
         # Generate the image
-        image = pipeline(prompt).images[0]
+        image = pipeline(prompt+', single person, no background').images[0]
 
         # Generate a unique image filename
         timestamp = int(time.time())
-        image_filename = f'static/novel/basic/{title}_{name}_{timestamp}.png'  # Save to the static/image folder
+
+        save_directory = 'C:/Users/user/miniforge3/dev/ai-project-novel/novel_server/static/novel/basic'
+        file_name = f'{title}_{name}_{timestamp}.png'  # Save to the static/image folder
+        file_path = os.path.join(save_directory, file_name)
 
         # Save the image to the specified path
-        image.save(image_filename, format='PNG')
+        image.save(file_path.replace('\\', '/'), format='PNG')
+        print(f"이미지를 {file_name} 파일로 저장했습니다.")
 
-        # Convert the image to Base64
-        with open(image_filename, "rb") as image_file:
-            encoded_image = base64.b64encode(image_file.read()).decode()
+        # 서버에 파일 'rb'(바이너리 리드)방식으로 엶
+        with open(file_path, 'rb') as file:
+            files = {'file' : (file_name, file)}
+            server_url = '전송할 서버 주소'
+            response = requests.post(server_url, files=files)
+            if response.status_code == 200:
+                print('파일 전송 성공')
+            else:
+                print('파일 전송 실패')
+    
 
-        # Return a JSON response with the Base64-encoded image and image filename
-        response_data = {
-            "image_base64": encoded_image,
-            "image_filename": image_filename
-        }
-
-        return jsonify(response_data)
+        return '이미지 전송 성공'
     
 
 
@@ -105,23 +114,16 @@ def basic_charactor():
 def face_detection():
     if request.method == 'POST':
         try:
-            # 클라이언트로부터 JSON 데이터를 받아옴
-            data = request.json
+            # form-data에서 이미지 데이터 추출
+            image_file = request.files['image']
 
-            # Base64로 인코딩된 이미지 데이터를 디코딩
-            base64_image = data.get('image', '') #생성된 소설 삽화
-
-            if not base64_image:
+            if not image_file:
                 return jsonify({'error': '이미지 데이터가 없습니다.'}), 400
 
-            # Base64 디코딩
-            image_bytes = base64.b64decode(base64_image)
-
-            # Bytes를 NumPy 배열로 변환
-            image_np = np.frombuffer(image_bytes, np.uint8)
-
-            # NumPy 배열을 OpenCV 이미지로 변환
+            # 이미지 데이터를 OpenCV 형식으로 읽어옴
+            image_np = np.frombuffer(image_file.read(), np.uint8)
             image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+
 
             if image is None:
                 return jsonify({'error': '이미지를 읽을 수 없습니다.'}), 400
@@ -149,44 +151,53 @@ def face_detection():
 
         except Exception as e:
             return jsonify({'error': str(e)}), 400
+
     
 
 @bp.route('/step5', methods=['POST', 'GET']) #이미지값들 받아서 순서대로 얼굴 교체. 
 def face_swap():
     if request.method == 'POST':
-        try:
-            # JSON 데이터에서 이미지 리스트와 일러스트 이미지를 받아옴
-            data = request.get_json()
+        
+        # 이미지 파일을 Form Data에서 받아옴
+        b_list = request.files.getlist('b_list')
+        illustration = request.files['illustration']
 
-            # 'b_list'에서 여러장의 인코딩된 이미지 리스트를 가져옴
-            encoded_images = data.get('b_list', [])
+        # 일러스트 이미지를 읽어옴
+        illustration = cv2.imdecode(np.frombuffer(illustration.read(), np.uint8), cv2.IMREAD_COLOR)
 
-            # 'illustration'에서 한장의 인코딩된 이미지를 가져옴
-            encoded_illustration = data.get('illustration', '')
+        # 얼굴 디텍션
+        faces = app.get(illustration)
 
-            # 일러스트 이미지 디코드
-            illustration_bytes = base64.b64decode(encoded_illustration)
-            illustration_np = np.frombuffer(illustration_bytes, np.uint8)
-            illustration = cv2.imdecode(illustration_np, cv2.IMREAD_COLOR)
+        # 인코딩된 이미지를 디코드하고 얼굴 스왑
+        for i in range(len(faces)):
+            b_list_file = b_list[i]
+            face1 = app.get(cv2.imdecode(np.frombuffer(b_list_file.read(), np.uint8), cv2.IMREAD_COLOR))[0]
+            face2 = faces[i]
 
-            # 얼굴 디텍션
-            faces = app.get(illustration)
+            if i == 0:
+                ill_ = illustration.copy()
 
-            # 인코딩된 이미지를 디코드하고 얼굴 스왑
-            for i, face in enumerate(faces):
-                if i < len(encoded_images):
-                    encoded_image = encoded_images[i]
-                    image_bytes = base64.b64decode(encoded_image)
-                    image_np = np.frombuffer(image_bytes, np.uint8)
-                    face1 = app.get(cv2.imdecode(image_np, cv2.IMREAD_COLOR))[0]
-                    face2 = faces[i]
-                    illustration = swapper.get(illustration, face1, face2, paste_back=True)
+            ill_ = swapper.get(ill_, face1, face2, paste_back=True)
 
-            # 결과 이미지를 base64로 인코딩
-            _, illustration_encoded = cv2.imencode('.jpg', illustration)
-            illustration_base64 = base64.b64encode(illustration_encoded).decode('utf-8')
+        save_directory = 'C:/Users/user/miniforge3/dev/ai-project-novel/novel_server/static/novel/result'
+        timestamp = int(time.time())
+        file_name = f'{timestamp}.png'  # Save to the static/image folder
+        file_path = os.path.join(save_directory, file_name)
 
-            return jsonify({'result_image': illustration_base64})
+        # Save the image to the specified path
+        #ill_.save(file_path.replace('\\', '/'), format='PNG')
+        cv2.imwrite(file_path.replace('\\', '/'), ill_)
+        print(f"이미지를 {file_name} 파일로 저장했습니다.")
 
-        except Exception as e:
-            return jsonify({'error': str(e)}), 400
+        # 서버에 파일 'rb'(바이너리 리드)방식으로 엶
+        with open(file_path, 'rb') as file:
+            files = {'file' : (file_name, file)}
+            server_url = '통신할 서버 주소'
+            response = requests.post(server_url, files=files)
+            if response.status_code == 200:
+                print('파일 전송 성공')
+            else:
+                print('파일 전송 실패')
+
+
+        return '이미지 전송 성공'

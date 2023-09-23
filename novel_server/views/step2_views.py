@@ -11,7 +11,7 @@ bp = Blueprint('step2', __name__, url_prefix='/step2')
 # 요약
 model = "gpt-3.5-turbo"
 
-openai.api_key = ""  ### 삭제
+openai.api_key = "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"  #해니
 
 def summarize(input_text):
             messages = [
