@@ -45,7 +45,7 @@ def eng_show():
 
     trans_genre = str(trans_ko_eng(genre))
     trans_whole_plot = str(trans_ko_eng(whole_plot)) 
-    trans_character = str(trans_ko_eng(character_name))  ###
+    trans_character_name = str(trans_ko_eng(character_name))  ###
     trans_character_gender = str(trans_ko_eng(character_gender))  ###
     trans_character_apperance = str(trans_ko_eng(character_apperance))  ###
     trans_episode_plot = str(trans_ko_eng(episode_plot))
@@ -59,12 +59,12 @@ def eng_show():
     #     character_apperance = character_info["characterApperance"]
 
     # stable diffusion 프롬프트 작성
-    def summarization(trans_character, trans_episode_plot, trans_whole_plot, trans_input):
+    def summarization(trans_character_name, trans_episode_plot, trans_input):
     
         messages = [          
                     {"role": "system", "content": "You should not let the prompt exceed 70 tokens"},      
-                    {"role": "system", "content": f"Please extract extra important elements separated by commas, such as verbs, subjects from {trans_episode_plot}, {trans_character}'s perspective and you must include {trans_input}"},
-                    {"role": "system", "content": f"Please extract the extra important elements separated by commas, such as verbs, subjects and must include {trans_character}"},                  
+                    {"role": "system", "content": f"Please extract extra important elements separated by commas, such as verbs, subjects from {trans_episode_plot}, and you must include {trans_input}"},
+                    {"role": "system", "content": f"Please extract the extra important elements separated by commas, such as verbs, subjects from {trans_character_name}"},                  
             ]
     
         response = openai.ChatCompletion.create(
@@ -78,7 +78,7 @@ def eng_show():
 
         return result
     
-    result = summarization(trans_genre, trans_character, trans_episode_plot, trans_whole_plot, trans_input)
+    result = summarization(trans_genre, trans_character_name, trans_episode_plot, trans_whole_plot, trans_input)
 
     # # 서버 아닐 시
     # pipe = StableDiffusionPipeline.from_pretrained('CompVis/stable-diffusion-v1-4',
@@ -146,14 +146,7 @@ def eng_show():
             break    
 
         image_number += 1
-    
-    # image_url = '/static/image/novel/complete1.png'
 
-    # response_data = {
-    # 'message': '이미지 생성 및 저장 성공',
-    # 'image_url': image_url
-    # } 
-    # return jsonify(response_data)
     
      # 서버에 파일 'rb'(바이너리 리드)방식으로 엶
     with open(file_path, 'rb') as file:

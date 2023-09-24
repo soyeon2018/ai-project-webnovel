@@ -101,7 +101,7 @@ bp = Blueprint('step2', __name__, url_prefix='/')
 
 #         # 파일 없는 경우
 #         if uploaded_file is None:
-#             return '파일이 존재하지 않습니다.'
+            # abort(400, '파일이 존재하지 않습니다.')
         
 #         else:  # 파일 있는 경우
 #             upload_folder = "uploads"  
