@@ -118,7 +118,7 @@ def eng_show():
      # 서버에 파일 'rb'(바이너리 리드)방식으로 엶
     with open(file_path, 'rb') as file:
         files = {'file' : (file_name, file)}
-        server_url = 'http://127.0.0.1:5003/step3/show_img'
+        server_url = '서버 주소'
         response = requests.post(server_url, files=files)
         if response.status_code == 200:
             print('파일 전송 성공')

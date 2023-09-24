@@ -1,4 +1,5 @@
-from flask import Flask, Blueprint, render_template, send_file, request, jsonify
+import cv2
+from flask import Flask, Blueprint, app, render_template, send_file, request, jsonify
 import deepl
 from flask import Blueprint, Flask, jsonify, request
 import openai
@@ -138,6 +139,15 @@ def eng_show():
             print(f'\n\nprompt : {prompt}')
 
             image = pipe(prompt).images[0]
+
+            # 얼굴 검출
+            img = cv2.imread(file_path)
+            faces = app.get(img)
+            detect_num = len(faces)
+
+            ########## 입력한 캐릭터 수만큼의 얼굴이 탐지되어야 이미지를 저장해야 함. 그래야 그 사진을 보냄
+            input 
+
 
             # 이미지를 파일로 저장
             image.save(file_path.replace('\\', '/')) 
