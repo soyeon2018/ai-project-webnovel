@@ -163,4 +163,3 @@ bp = Blueprint('step2', __name__, url_prefix='/')
 #         # return f'result: {response_data}'
 
 #     return "파일 업로드 및 처리에 실패했습니다."
-
