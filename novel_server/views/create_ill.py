@@ -143,7 +143,7 @@ def face_detection():
                 timestamp = int(time.time())
                 face_image = image[bbox[1]:bbox[3], bbox[0]:bbox[2], ::-1]
                 face_encoded = base64.b64encode(cv2.imencode('.png', face_image)[1]).decode()  # 이미지를 Base64로 인코딩
-                detect_images.append(face_encoded)
+                detect_images.append([face_encoded])
 
             response_data = {
                 'detect_num': detect_num,
