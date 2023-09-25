@@ -72,6 +72,17 @@ def basic_charactor():
         personality = data.get('personality')
         genre = data.get('genre')
 
+        genre_to_artist = {
+        '로맨스': 'Ken Kelly',
+        '무협': 'Noriyoshi Ohrai',
+        '로맨스판타지': 'Artgerm',
+        '판타지' : 'Karol Bak',
+        'BL' : 'Rafał Olbiński',
+        '현대판타지' : 'Martine Johanna'
+        }
+
+        artist = genre_to_artist.get(genre, '')
+
         # Translate the text using the Deepl API
         result = translator.translate_text(f"{name} : 성별은 {gender},생김새는 {appearance}, 성격은 {personality}, 장르는 {genre}, 웹툰그림체, 정면 응시, 상반신", target_lang="en-us")
 
@@ -80,7 +91,7 @@ def basic_charactor():
 
         # Generate the image - face detect 안되면 될 때까지 생성
         while True:
-            image = pipeline(prompt+', single person, no background').images[0]
+            image = pipeline(prompt+f', single person, no background, art by {artist},  approaching perfection, masterpiece, best quality, intricate,  sharp, focused, not blurry').images[0]
             img = np.array(image)
             faces = app.get(img)
             if len(faces) != 0:
