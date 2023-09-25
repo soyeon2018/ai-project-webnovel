@@ -1,15 +1,15 @@
-# import cv2
-# from flask import Flask, Blueprint, app, render_template, send_file, request, jsonify
-# import deepl
-# from flask import Blueprint, Flask, jsonify, request
-# import openai
-# import requests
-# import torch
-# from diffusers import StableDiffusionPipeline, DiffusionPipeline
-# from PIL import Image
-# import os
+import cv2
+from flask import Flask, Blueprint, app, render_template, send_file, request, jsonify
+import deepl
+from flask import Blueprint, Flask, jsonify, request
+import openai
+import requests
+import torch
+from diffusers import StableDiffusionPipeline, DiffusionPipeline
+from PIL import Image
+import os
 
-# bp = Blueprint('step3', __name__, url_prefix='/')
+bp = Blueprint('step3', __name__, url_prefix='/')
  
 # # api
 # translator = deepl.Translator('')  ### 삭제
@@ -42,7 +42,7 @@
 #     character_gender = data.get('characterGender') ###
 #     character_apperance = data.get('characterApperance') ###
 #     episode_plot = data.get('summaryResult', '')
-#     input = data.get('input', '')  ## 이거 컬럼 없나??
+#     input = data.get('input', '')  ## input컬럼
 
 #     trans_genre = str(trans_ko_eng(genre))
 #     trans_whole_plot = str(trans_ko_eng(whole_plot)) 
@@ -60,12 +60,12 @@
 #     #     character_apperance = character_info["characterApperance"]
 
 #     # stable diffusion 프롬프트 작성
-#     def summarization(trans_character_name, trans_episode_plot, trans_input):
+#     def summarization(trans_character_name, trans_episode_plot, trans_input, trans_character_gender, trans_character_apperance):
     
 #         messages = [          
 #                     {"role": "system", "content": "You should not let the prompt exceed 70 tokens"},      
 #                     {"role": "system", "content": f"Please extract extra important elements separated by commas, such as verbs, subjects from {trans_episode_plot}, and you must include {trans_input}"},
-#                     {"role": "system", "content": f"Please extract the extra important elements separated by commas, such as verbs, subjects from {trans_character_name}"},                  
+#                     {"role": "system", "content": f"Please extract the extra important elements separated by commas, such as verbs, subjects from {trans_character_name}, {trans_character_apperance}, {trans_character_gender}"},                  
 #             ]
     
 #         response = openai.ChatCompletion.create(
@@ -101,27 +101,20 @@
 #     directory = genre_to_directory.get(genre, '')
 
 #     # 이미지 파일 저장 디렉토리  
-#     save_directory = f'D:/toon_novel/static/image/novel/complete/{directory}'
+#     save_directory = f'D:/ai_toon/ai-project-novel/novel_server/static/novel/complete/{directory}'
 
 #     # 이미지 파일 저장 번호 초기화
 #     image_number = 1
 
 #     pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float32, use_safetensors=True, variant="fp16").to(device)
 
-#     # if genre == '로맨스':
-#     #     artist = 'a'
-#     # elif genre == '무협':
-#     #     artist = 'b'
-#     # elif genre == "로맨스판타지":
-#     #     artist = 'c'
-
 #     genre_to_artist = {
-#     '로맨스': 'a',
-#     '무협': 'b',
-#     '로맨스판타지': 'c',
-#     '판타지' : 'd',
-#     'BL' : 'e',
-#     '현대판타지' : 'f'
+#     '로맨스': 'Ken Kelly',
+#     '무협': 'Noriyoshi Ohrai',
+#     '로맨스판타지': 'Artgerm',
+#     '판타지' : 'Karol Bak',
+#     'BL' : 'Rafał Olbiński',
+#     '현대판타지' : 'Martine Johanna'
 #     }
 
 #     artist = genre_to_artist.get(genre, '')
@@ -188,6 +181,3 @@
 # #     input_text = data.get('english', '')  
 # #     trans_output = trans_ko_eng(input_text)
 # #     return jsonify({"번역한 내용": trans_output.text})
-
-
-# 제발 돼야 하는데
