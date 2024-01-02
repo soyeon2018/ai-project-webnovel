@@ -1,2 +1,4 @@
-# 웹소설 표시 그림 생성 프로젝트
-- 동영상 : https://www.youtube.com/watch?v=y6okeuaDKvE
+# 프로젝트명 :  노블코믹스 
+### 이미지생성 AI를 활용한 웹툰 / 일러스트 창작 보조 웹서비스
+
+#### 시연 동영상 : https://www.youtube.com/watch?v=y6okeuaDKvE
